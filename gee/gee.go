@@ -7,9 +7,17 @@ type HandlerFunc func(*Context)
 
 //Engine implement the interface of ServeHTTP
 type Engine struct{
+	*RouterGroup
 	router *router
+	groups []*RouterGroup //store all groups
 }
 
+type RouterGroup struct{
+	prefix string
+	middlewares []HandlerFunc
+	parent *RouterGroup
+	engine Engine
+}
 //New is the constructor of gee.Engine
 func New()*Engine{
 	return &Engine{router: newRouter()}
