@@ -8,26 +8,31 @@ import (
 
 type H map[string]interface{}
 
-type Context struct{
-	//origin objects
+type Context struct {
+	// origin objects
 	Writer http.ResponseWriter
-	Req *http.Request
-	//request info
-	Path string
+	Req    *http.Request
+	// request info
+	Path   string
 	Method string
 	Params map[string]string
-	//response info
+	// response info
 	StatusCode int
+	// middleware
+	handlers []HandlerFunc
+	index    int
 }
 
-func newContext(w http.ResponseWriter,req *http.Request)*Context{
+func newContext(w http.ResponseWriter, req *http.Request) *Context {
 	return &Context{
-		Writer: w,
-		Req: req,
-		Path: req.URL.Path,
+		Path:   req.URL.Path,
 		Method: req.Method,
+		Req:    req,
+		Writer: w,
+		index:  -1,
 	}
 }
+
 func (c *Context) Param(key string)string{
 	value,_ := c.Params[key]
 	return value
@@ -75,9 +80,13 @@ func (c *Context)HTML(code int,html string){
 }
 
 
-
-
-
+func (c *Context) Next() {
+	c.index++
+	s := len(c.handlers)
+	for ; c.index < s; c.index++ {
+		c.handlers[c.index](c)
+	}
+}
 
 
 
